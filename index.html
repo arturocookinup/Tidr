@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TidyDeck - Clean your files</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Background dynamic elements -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <!-- Header bar -->
+    <div class="app-header">
+        <div class="logo">
+            <i data-lucide="layers"></i>
+            <h1>Tidr</h1>
+        </div>
+        <div class="header-actions" style="display:flex; gap:1rem;">
+            <button id="btn-credits" class="btn-minimal" title="About Tidr Credits">
+                <i data-lucide="info"></i> Credits
+            </button>
+            <button id="btn-end-session" class="btn-minimal" style="display:none;"
+                title="Finish swiping and go to summary">
+                <i data-lucide="log-out"></i> End Session
+            </button>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Screen 1: Setup/Select Path -->
+        <div id="screen-setup" class="screen active">
+            <div class="glass-panel setup-panel">
+                <p class="subtitle">Swipe left to trash, right to keep. Clean your drive interactively.</p>
+                <div class="input-group"
+                    style="animation: fadeUp 0.8s ease-out forwards; opacity:0; transform: translateY(20px);">
+                    <div style="display:flex; gap:1rem; align-items:center;">
+                        <input type="text" id="dir-input" placeholder="Select a directory to clean..." readonly
+                            style="flex:1;">
+                        <button id="btn-browse" class="btn-secondary" style="margin:0; padding:1.25rem 2rem;">
+                            <i data-lucide="folder-open"></i> Browse
+                        </button>
+                    </div>
+
+                    <div class="filter-grid"
+                        style="animation: fadeUp 0.8s ease-out 0.2s forwards; opacity:0; transform: translateY(20px);">
+                        <label class="checkbox-btn">
+                            <input type="checkbox" id="chk-images" checked>
+                            <span class="chk-label"><i data-lucide="image"></i> Images</span>
+                        </label>
+                        <label class="checkbox-btn">
+                            <input type="checkbox" id="chk-videos" checked>
+                            <span class="chk-label"><i data-lucide="video"></i> Videos</span>
+                        </label>
+                        <label class="checkbox-btn">
+                            <input type="checkbox" id="chk-audio" checked>
+                            <span class="chk-label"><i data-lucide="music"></i> Audio</span>
+                        </label>
+                        <label class="checkbox-btn">
+                            <input type="checkbox" id="chk-documents" checked>
+                            <span class="chk-label"><i data-lucide="file-text"></i> Documents</span>
+                        </label>
+                        <label class="checkbox-btn">
+                            <input type="checkbox" id="chk-folders" checked>
+                            <span class="chk-label"><i data-lucide="folder"></i> Folders</span>
+                        </label>
+                        <label class="checkbox-btn">
+                            <input type="checkbox" id="chk-others" checked>
+                            <span class="chk-label"><i data-lucide="file"></i> Others</span>
+                        </label>
+                    </div>
+
+                    <button id="btn-scan"
+                        style="animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s forwards; opacity:0; transform: scale(0.9);">
+                        <i data-lucide="search"></i> Scan Directory
+                    </button>
+                </div>
+                <div class="loader-wrap" id="setup-loader" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Scanning directory...</p>
+                </div>
+                <p id="setup-error" style="color:var(--trash); margin-top:1rem; display:none;"></p>
+            </div>
+        </div>
+
+        <!-- Screen 2: Swiping -->
+        <div id="screen-swiping" class="screen">
+            <div class="swiping-layout">
+                <div class="deck-container" id="deck">
+                    <!-- Cards injected here -->
+                </div>
+
+                <div class="controls-sidebar">
+                    <div class="stats">
+                        <span id="counter">0 / 0</span> remaining
+                    </div>
+                    <div class="action-buttons">
+                        <button id="btn-keep" class="action-btn yes" title="Swipe right or click to KEEP this item">
+                            <i data-lucide="heart"></i>
+                            <span>KEEP</span>
+                        </button>
+                        <button id="btn-trash" class="action-btn no" title="Swipe left or click to TRASH this item">
+                            <i data-lucide="x"></i>
+                            <span>TRASH</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Summary -->
+        <div id="screen-summary" class="screen">
+            <div class="glass-panel summary-panel"
+                style="display:flex; flex-direction:column; height: 100%; max-height: 85vh; padding: 2rem 3rem;">
+                <i data-lucide="check-circle" class="success-icon"
+                    style="margin: 0 auto 1rem; width: 48px; height: 48px;"></i>
+                <h2>Session Complete!</h2>
+
+                <div class="overview-stats">
+                    <div class="stat-box">
+                        <h3>Kept</h3>
+                        <p id="stat-kept" class="num keep-color">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Trashed</h3>
+                        <p id="stat-trashed" class="num trash-color">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Storage Reclaimed</h3>
+                        <p id="stat-storage" class="num">0 MB</p>
+                    </div>
+                </div>
+
+                <div class="file-list" id="trash-list"
+                    style="flex: 1 1 0; overflow-y: auto; margin-bottom: 1rem; min-height: 0;">
+                    <!-- Files to trash listed here -->
+                </div>
+
+                <div class="summary-actions" style="margin-top: auto;">
+                    <button id="btn-cancel" class="btn-secondary">Cancel & Keep All</button>
+                    <button id="btn-confirm-delete" class="btn-primary" style="margin-top:0;">
+                        <i data-lucide="trash-2"></i> Move Trashed to Recycle Bin
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 4: Credits -->
+        <div id="screen-credits" class="screen">
+            <div class="glass-panel credits-panel"
+                style="max-width: 600px; animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+                <i data-lucide="award" style="width:64px; height:64px; color:var(--primary); margin-bottom:1.5rem;"></i>
+                <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Tidr</h2>
+                <p style="color: var(--text-muted); font-size: 1.2rem; margin-bottom: 2rem;">The premium way to clean
+                    your drive.</p>
+
+                <div
+                    style="background: rgba(0,0,0,0.2); padding: 2rem; border-radius: 20px; border: 1px solid var(--glass-border); margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: #f8fafc;">Created By</h3>
+                    <p style="font-size: 1.5rem; font-weight: 600; color: var(--primary);">Arturo <span
+                            style="color: var(--text-muted); font-size: 1.2rem; font-weight: 400;">(@arturocookinup)</span>
+                    </p>
+
+                    <div
+                        style="margin-top: 2rem; display: flex; align-items: center; justify-content: center; gap: 0.8rem; color: var(--text-muted);">
+                        <i data-lucide="mail"></i>
+                        <a href="mailto:info@arturocookinup.com"
+                            style="color: var(--primary); text-decoration: none; font-size: 1.1rem; transition: color 0.2s;">info@arturocookinup.com</a>
+                    </div>
+                </div>
+
+                <button id="btn-close-credits" class="btn-primary" style="width: 100%;">
+                    <i data-lucide="arrow-left"></i> Back to App
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
