@@ -6,11 +6,11 @@ Tidr is a fast, beautiful, standalone desktop application that gamifies cleaning
 - **Interactive Swiping**: Drag cards left/right or click buttons to quickly review images, videos, audio, documents, and folders.
 - **Premium Desktop UI**: Ethereal glass design with double-bezel architecture, floating island nav, staggered motion choreography, and OLED-black dark theme.
 - **Safe Deletions**: Trashed files are moved to the OS-level Recycle Bin — nothing is permanently deleted.
-- **Standalone Executable**: Download `Tidr.exe` from the `dist/` folder and run it. No Python required.
+- **Standalone Executable**: Download `Tidr.exe` from the latest release and run it. No Python required.
 
 ## Quick Start (Executable)
 
-1. Download `Tidr.exe` from the [`dist/`](dist/) folder.
+1. Download `Tidr.exe` from the [latest release](https://github.com/arturocookinup/Tidr/releases/latest).
 2. Double-click to run. That's it.
 
 ## Running from Source
