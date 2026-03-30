@@ -1,17 +1,23 @@
 # Tidr - Clean your drive
+
 Tidr is a fast, beautiful, standalone desktop application that gamifies cleaning your computer files. It works just like Tinder—but for your cluttered hard drive! Select a directory, swipe right to KEEP a file, or swipe left to TRASH it. Your trashed files are safely moved to the Recycle Bin when you finish your session.
 
 ## Features
-- **Interactive Swiping**: Quickly review images, videos, audio, and documents.
-- **Premium Desktop UI**: Glassmorphic design, fluid animations, and a sleek dark theme.
-- **Safe Deletions**: Trashed files are moved to the OS-level Recycle Bin, so you never accidentally lose anything permanently.
-- **Standalone Capability**: Easily built into a portable, 1-click `.exe` application.
+- **Interactive Swiping**: Drag cards left/right or click buttons to quickly review images, videos, audio, documents, and folders.
+- **Premium Desktop UI**: Ethereal glass design with double-bezel architecture, floating island nav, staggered motion choreography, and OLED-black dark theme.
+- **Safe Deletions**: Trashed files are moved to the OS-level Recycle Bin — nothing is permanently deleted.
+- **Standalone Executable**: Download `Tidr.exe` from the `dist/` folder and run it. No Python required.
 
-## Running Locally
+## Quick Start (Executable)
+
+1. Download `Tidr.exe` from the [`dist/`](dist/) folder.
+2. Double-click to run. That's it.
+
+## Running from Source
 
 1. Clone this repository.
-2. Ensure you have Python installed.
-3. Install the dependencies:
+2. Ensure you have Python 3.10+ installed.
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
@@ -20,21 +26,23 @@ Tidr is a fast, beautiful, standalone desktop application that gamifies cleaning
    python main.py
    ```
 
-## Deploying / Building the Executable
+## Building the Executable
 
-To package the application into a standalone `.exe` file (so run-time users don't need Python installed), we use PyInstaller.
+To rebuild the standalone `.exe`:
 
-First, ensure PyInstaller is installed (`pip install pyinstaller`).
-
-Then run the compilation command:
 ```bash
-pyinstaller --noconfirm --onefile --windowed --icon "tidr.ico" --name "Tidr" --add-data "index.html;." --add-data "style.css;." --add-data "script.js;." main.py
+pip install pyinstaller
+python -m PyInstaller --noconfirm --onefile --windowed --icon "tidr.ico" --name "Tidr" --add-data "index.html;." --add-data "style.css;." --add-data "script.js;." main.py
 ```
 
-The compiled `Tidr.exe` will appear in your `dist/` directory!
+The compiled `Tidr.exe` will appear in the `dist/` directory.
 
-## Known Bugs & Notes
-If the application crashes or you get a silent failure upon opening, ensure that Python is locating your local statically-served HTML/CSS files correctly via the `get_resource_path()` function in `app.py`.
+## Tech Stack
+- **Desktop**: pywebview + Flask
+- **Frontend**: Vanilla HTML/CSS/JS
+- **Icons**: Phosphor Icons (Light)
+- **Typography**: Plus Jakarta Sans
+- **Packaging**: PyInstaller
 
 ## Credits
-Built and polished by Arturo (@arturocookinup). For support, contact info@arturocookinup.com.
+Built by Arturo ([@arturocookinup](https://github.com/arturocookinup)). For support, contact info@arturocookinup.com.

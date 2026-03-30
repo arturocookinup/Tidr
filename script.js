@@ -42,6 +42,27 @@ function formatSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+// Staggered entry animation
+function animateIn(container, selector = ':scope > *', baseDelay = 80) {
+    const children = container.querySelectorAll(selector);
+    children.forEach((el, i) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(16px)';
+        el.style.filter = 'blur(4px)';
+        el.style.transition = 'none';
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                el.style.transition = `opacity 700ms cubic-bezier(0.32, 0.72, 0, 1) ${i * baseDelay}ms,
+                                       transform 700ms cubic-bezier(0.32, 0.72, 0, 1) ${i * baseDelay}ms,
+                                       filter 700ms cubic-bezier(0.32, 0.72, 0, 1) ${i * baseDelay}ms`;
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+                el.style.filter = 'blur(0)';
+            });
+        });
+    });
+}
+
 function showScreen(screen) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     screen.classList.add('active');
@@ -51,7 +72,27 @@ function showScreen(screen) {
     } else {
         btnEndSession.style.display = 'none';
     }
+
+    // Staggered entry animations
+    const inner = screen.querySelector('.glass-panel-inner');
+    if (inner) {
+        animateIn(inner, ':scope > *', 60);
+    } else if (screen === screenSwiping) {
+        const sidebar = screen.querySelector('.controls-sidebar');
+        if (sidebar) {
+            animateIn(sidebar, ':scope > *', 100);
+        }
+    }
 }
+
+// Initial load animation
+document.addEventListener('DOMContentLoaded', () => {
+    const setupInner = document.getElementById('setup-inner');
+    if (setupInner) {
+        setupInner.style.opacity = '1';
+        animateIn(setupInner, ':scope > *', 100);
+    }
+});
 
 // 1. Setup & Scan
 btnBrowse.addEventListener('click', async () => {
@@ -115,8 +156,7 @@ btnScan.addEventListener('click', async () => {
     } finally {
         btnScan.disabled = false;
         setupLoader.style.display = 'none';
-        btnScan.innerHTML = '<i data-lucide="search"></i> Scan Directory';
-        lucide.createIcons();
+        btnScan.innerHTML = '<span>Scan Directory</span><span class="btn-icon-circle"><i class="ph-light ph-magnifying-glass"></i></span>';
     }
 });
 
@@ -126,11 +166,10 @@ btnEndSession.addEventListener('click', () => {
 
 btnCredits.addEventListener('click', () => {
     showScreen(screenCredits);
-    btnEndSession.style.display = 'none'; // hide end session when not swiping
+    btnEndSession.style.display = 'none';
 });
 
 btnCloseCredits.addEventListener('click', () => {
-    // If we have files and are actively swiping
     if (files.length > 0 && currentIndex < files.length) {
         showScreen(screenSwiping);
         btnEndSession.style.display = 'flex';
@@ -143,7 +182,6 @@ btnCloseCredits.addEventListener('click', () => {
 async function renderDeck() {
     deck.innerHTML = '';
 
-    // Render top 3 cards only for performance
     const cardsToRender = files.slice(currentIndex, currentIndex + 3).reverse();
 
     for (let i = 0; i < cardsToRender.length; i++) {
@@ -152,7 +190,6 @@ async function renderDeck() {
         const actualIndex = currentIndex + (cardsToRender.length - 1 - i);
         card.dataset.index = actualIndex;
 
-        // Scale behind cards
         const offset = cardsToRender.length - 1 - i;
         if (offset > 0) {
             card.style.transform = `scale(${1 - (offset * 0.05)}) translateY(${offset * 20}px)`;
@@ -166,7 +203,6 @@ async function renderDeck() {
     }
 
     updateCounter();
-    lucide.createIcons();
 
     if (currentIndex >= files.length) {
         finishSession();
@@ -183,16 +219,16 @@ async function generateMediaHtml(file) {
         if (file.preview_files && file.preview_files.length > 0) {
             previewHtml = '<ul class="folder-preview-list">';
             file.preview_files.forEach(f => {
-                previewHtml += `<li><i data-lucide="file" style="width:14px;height:14px"></i> ${f}</li>`;
+                previewHtml += `<li><i class="ph-light ph-file" style="font-size:0.85rem"></i> ${f}</li>`;
             });
             previewHtml += '</ul>';
         }
 
         return `
             <div class="audio-wrap" style="width: 100%;">
-                <i data-lucide="folder" class="file-icon" style="color: #fbbf24; width: 120px; height: 120px;"></i>
-                <h2 style="margin-top: 1rem; color: #f8fafc;">${file.name}</h2>
-                <p style="color: var(--text-muted); font-size: 1.1rem; margin-top: 0.5rem;">${file.summary}</p>
+                <i class="ph-light ph-folder" style="font-size: 5rem; color: #fbbf24; display: block;"></i>
+                <h2 style="margin-top: 1rem; color: var(--text-main); font-weight: 700; letter-spacing: -0.01em;">${file.name}</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.5rem;">${file.summary}</p>
                 ${previewHtml}
             </div>
         `;
@@ -209,7 +245,7 @@ async function generateMediaHtml(file) {
     if (file.type === 'audio') {
         return `
             <div class="audio-wrap">
-                <i data-lucide="music"></i>
+                <i class="ph-light ph-music-note"></i>
                 <audio src="${mediaUrl}" controls style="width: 100%"></audio>
             </div>
         `;
@@ -229,7 +265,7 @@ async function generateMediaHtml(file) {
 
     return `
         <div class="audio-wrap">
-            <i data-lucide="file" class="file-icon"></i>
+            <i class="ph-light ph-file file-icon"></i>
         </div>
     `;
 }
@@ -242,38 +278,35 @@ async function createCard(file) {
     const displaySize = file.type === 'folder' ? 'DIR' : formatSize(file.size);
 
     card.innerHTML = `
-        <div class="stamp stamp-keep" id="stamp-keep-${file.path}">KEEP</div>
-        <div class="stamp stamp-trash" id="stamp-trash-${file.path}">TRASH</div>
-        
-        <div class="card-media">
-            ${mediaHtml}
-        </div>
-        
-        <div class="card-info">
-            <div style="display: flex; justify-content: space-between; align-items:flex-start;">
-                <div class="type-badge">${file.type}</div>
-                <button class="btn-open-location" title="Open file location in Explorer">
-                    <i data-lucide="external-link"></i> Show
-                </button>
+        <div class="stamp stamp-keep">KEEP</div>
+        <div class="stamp stamp-trash">TRASH</div>
+
+        <div class="card-inner">
+            <div class="card-media">
+                ${mediaHtml}
             </div>
-            
-            <h3>${file.name}</h3>
-            <div class="size">${displaySize}</div>
-            <div class="path">
-                ${file.path}
+
+            <div class="card-info">
+                <div style="display: flex; justify-content: space-between; align-items:flex-start;">
+                    <div class="type-badge">${file.type}</div>
+                    <button class="btn-open-location" title="Open file location in Explorer">
+                        <i class="ph-light ph-arrow-square-out"></i> Show
+                    </button>
+                </div>
+
+                <h3>${file.name}</h3>
+                <div class="size">${displaySize}</div>
+                <div class="path">${file.path}</div>
             </div>
         </div>
     `;
 
-    // Hook up open location logic
     const btnOpen = card.querySelector('.btn-open-location');
     if (btnOpen) {
-        // Prevent drag initiation if mousedown on button
         btnOpen.addEventListener('mousedown', e => e.stopPropagation());
         btnOpen.addEventListener('touchstart', e => e.stopPropagation());
-
         btnOpen.addEventListener('click', (e) => {
-            e.stopPropagation(); // prevent drag interference
+            e.stopPropagation();
             if (window.pywebview && window.pywebview.api) {
                 window.pywebview.api.open_file_location(file.path);
             }
@@ -288,7 +321,6 @@ function makeDraggable(card) {
     let isDragging = false;
     let startX = 0, startY = 0;
 
-    // Disable dragging if click originates on an interactive element inside the card media
     const interactiveTags = ['AUDIO', 'VIDEO', 'INPUT', 'BUTTON', 'A'];
 
     const keepStamp = card.querySelector('.stamp-keep');
@@ -306,7 +338,7 @@ function makeDraggable(card) {
 
     const onTouchMove = (e) => {
         if (!isDragging) return;
-        e.preventDefault(); // prevent scrolling while dragging
+        e.preventDefault();
         const x = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
         const y = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
 
@@ -321,11 +353,11 @@ function makeDraggable(card) {
         if (deltaX > 50) {
             keepStamp.style.opacity = Math.min(deltaX / 150, 1);
             trashStamp.style.opacity = 0;
-            card.style.borderColor = `rgba(16, 185, 129, ${Math.min(deltaX / 150, 1)})`;
+            card.style.borderColor = `rgba(52, 211, 153, ${Math.min(deltaX / 150, 1)})`;
         } else if (deltaX < -50) {
             trashStamp.style.opacity = Math.min(Math.abs(deltaX) / 150, 1);
             keepStamp.style.opacity = 0;
-            card.style.borderColor = `rgba(239, 68, 68, ${Math.min(Math.abs(deltaX) / 150, 1)})`;
+            card.style.borderColor = `rgba(248, 113, 113, ${Math.min(Math.abs(deltaX) / 150, 1)})`;
         } else {
             keepStamp.style.opacity = 0;
             trashStamp.style.opacity = 0;
@@ -348,7 +380,6 @@ function makeDraggable(card) {
         } else if (currentX < -threshold) {
             swipe('left', card);
         } else {
-            // Reset
             card.style.setProperty('--x', '0px');
             card.style.setProperty('--y', '0px');
             card.style.setProperty('--r', '0deg');
@@ -386,7 +417,6 @@ function swipe(direction, cardObj = null) {
     card.style.setProperty('--y', '100px');
     card.style.setProperty('--r', isRight ? '45deg' : '-45deg');
 
-    // Logic
     const file = files[currentIndex];
     if (!isRight) {
         trashList.push(file);
@@ -405,8 +435,7 @@ function swipe(direction, cardObj = null) {
 function handleControlClick(isRight, btn) {
     if (deck.children.length === 0) return;
 
-    // Add quirky bounce animation
-    btn.style.transform = 'scale(0.8)';
+    btn.style.transform = 'scale(0.85)';
     setTimeout(() => {
         btn.style.transform = '';
     }, 150);
@@ -419,7 +448,7 @@ btnTrash.addEventListener('click', () => handleControlClick(false, btnTrash));
 
 // 4. Summary
 function finishSession() {
-    statKept.textContent = keepList.length + (files.length - currentIndex); // currently kept + unswiped items
+    statKept.textContent = keepList.length + (files.length - currentIndex);
     statTrashed.textContent = trashList.length;
 
     let totalSaved = 0;
@@ -455,7 +484,7 @@ btnConfirmDelete.addEventListener('click', async () => {
     }
 
     btnConfirmDelete.disabled = true;
-    btnConfirmDelete.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0"></div> Moving...';
+    btnConfirmDelete.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0"></div> <span>Moving...</span>';
 
     const paths = trashList.map(f => f.path);
 
@@ -470,7 +499,6 @@ btnConfirmDelete.addEventListener('click', async () => {
         let errorMsg = data.errors.length > 0 ? "Failed on " + data.errors.length + " items." : "";
         alert("Successfully moved " + data.success + " items to the Recycle Bin. " + errorMsg);
 
-        // Reset
         files = [];
         trashList = [];
         keepList = [];
@@ -480,7 +508,6 @@ btnConfirmDelete.addEventListener('click', async () => {
         alert('Error: ' + err.message);
     } finally {
         btnConfirmDelete.disabled = false;
-        btnConfirmDelete.innerHTML = '<i data-lucide="trash-2"></i> Move Trashed to Recycle Bin';
-        lucide.createIcons();
+        btnConfirmDelete.innerHTML = '<span>Move to Recycle Bin</span><span class="btn-icon-circle"><i class="ph-light ph-trash"></i></span>';
     }
 });
